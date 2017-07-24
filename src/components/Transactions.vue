@@ -1,31 +1,34 @@
 <template>
-  <div  class="container-fluid">
+  <div class="container-fluid" v-if="bestBlock">
 
     <div class="row">
       <div class="col-12">
-        <h3>Transactions</h3>
+        <h3>Block Size</h3>
       </div>
     </div>
 
-    <div v-if="blockSizeRange">
-      <line-chart
-        :height="300"
-        :chart-data="{
-          labels: blockSizeRangeLabels,
-          datasets:[
-            {
-              label: 'Block Size',
-              yAxisID: 'y-axis-0',
-              fill: false,
-              backgroundColor: '#2970ff',
-              borderColor: '#2970ff',
-              data: blockSizeRange
-            }
-          ]
-        }"
-        :options="blockSizeRangeOptions"
-      ></line-chart>
-      <div class="text-center" style="margin-top: -5px;"><small>Block Height</small></div>
+    <div class="pos-rel">
+      <div v-if="!blockSizeRange" class="chart-loader">Loading chart...</div>
+      <div v-if="blockSizeRange">
+        <line-chart
+          :height="300"
+          :chart-data="{
+            labels: blockSizeRangeLabels,
+            datasets:[
+              {
+                label: 'Block Size',
+                yAxisID: 'y-axis-0',
+                fill: false,
+                backgroundColor: '#2970ff',
+                borderColor: '#2970ff',
+                data: blockSizeRange
+              }
+            ]
+          }"
+          :options="blockSizeRangeOptions"
+        ></line-chart>
+        <div class="text-center" style="margin-top: -5px;"><small>Block Height</small></div>
+      </div>
     </div>
 
   </div>
@@ -44,7 +47,6 @@ function getTransactions (start, end, data) {
   axios.get(url).then(function (response) {
     var compactedResponseData = _.compact(response.data)
     log.info('compactedResponseData', compactedResponseData)
-
     let chartData = {
       blockSizeRange: _.map(compactedResponseData, 'size'),
       blockSizeRangeLabels: _.map(compactedResponseData, (v) => {
@@ -102,7 +104,6 @@ export default {
       loading: false,
       start: null,
       end: null,
-      bestBlock: null,
       avgTimeBlockTimeInMinutes: null,
       lastBlockTimeElapsed: null,
       blockSizeRange: null,
@@ -117,21 +118,12 @@ export default {
     LineChart
   },
   created () {
-    // fetch the data when the view is created and the data is
-    // already being observed
     var _this = this
-    axios.get(helpers.apiUrl + 'block/best')
-      .then(function (response) {
-        log.info('bestBlock', response)
-        _this.start = response.data.height - 20
-        _this.end = response.data.height
-        _this.bestBlock = response.data
-        getTransactions(_this.start, _this.end, _this)
-      })
-      .catch(function (error) {
-        log.info(error, this)
-        log.info('this', this)
-      })
+    _this.$store.dispatch('getBestBlock').then((bestBlock) => {
+      _this.start = bestBlock.height - 20
+      _this.end = bestBlock.height
+      getTransactions(_this.start, _this.end, _this)
+    })
   },
   watch: {
     // call again the method if the route changes
@@ -140,8 +132,10 @@ export default {
   filters: {
     formatUnixDate: helpers.formatUnixDate
   },
-  methods: {
-
+  computed: {
+    bestBlock () {
+      return this.$store.state.bestBlock
+    }
   }
 }
 </script>
