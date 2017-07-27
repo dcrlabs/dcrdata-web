@@ -50,7 +50,7 @@ module.exports = {
               .value(),
             ticketPoolSizeRangeOptions: {
               animation: {
-                duration: 100
+                duration: 1000
               },
               responsive: true,
               maintainAspectRatio: false,

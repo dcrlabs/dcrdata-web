@@ -57,7 +57,7 @@ export default {
   position: absolute;
   height: 20em;
   text-align: center;
-  padding: 9em;
+  padding: 240px 0 0 0;
 }
 .pos-rel {
   position: relative;

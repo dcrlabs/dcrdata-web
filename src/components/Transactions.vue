@@ -8,7 +8,10 @@
     </div>
 
     <div class="pos-rel">
-      <div v-if="!blockSizeRange" class="chart-loader">Loading chart...</div>
+      <div v-if="loading" class="chart-loader">
+        <loader></loader>
+        Loading data...
+      </div>
       <div v-if="blockSizeRange">
         <bar-chart
           :height="400"
@@ -37,6 +40,7 @@
 
 import helpers from '../helpers'
 import BarChart from '@/components/BarChart.js'
+import Loader from '@/components/Loader.vue'
 import axios from 'axios'
 import _ from 'lodash'
 import log from 'loglevel'
@@ -92,17 +96,19 @@ function getTransactions (start, end, data) {
         }
       }
     }
+    data.loading = false
     _.assign(data, chartData)
   })
   .catch(function (error) {
     log.info('fetchBlockRange error', error)
+    data.loading = false
   })
 }
 
 export default {
   data () {
     return {
-      loading: false,
+      loading: true,
       start: null,
       end: null,
       avgTimeBlockTimeInMinutes: null,
@@ -116,7 +122,8 @@ export default {
     }
   },
   components: {
-    BarChart
+    BarChart,
+    Loader
   },
   created () {
     var _this = this

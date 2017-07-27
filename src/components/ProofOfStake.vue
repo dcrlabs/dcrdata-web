@@ -34,7 +34,7 @@
     <div class="pos-rel chart-wrapper">
       <div v-if="ticketPoolSizeRange && !loadingChart">
         <bar-chart
-          :height="300"
+          :height="400"
           :chart-data="{
             labels: ticketPoolSizeRangeLabels,
             datasets:[
@@ -61,7 +61,10 @@
         ></bar-chart>
         <div class="text-center" style="margin-top: -5px;"><small>Ticket Window</small></div>
       </div>
-      <div v-if="loadingChart" class="chart-loader">Loading chart...</div>
+      <div v-if="loadingChart" class="chart-loader">
+        <loader></loader>
+        Loading data...
+      </div>
     </div>
 
     <div class="row mb-2" v-if="ticketPoolSizeRange">
@@ -116,6 +119,8 @@ import moment from 'moment'
 import helpers from '../helpers'
 import chartData from '../chartData'
 import BarChart from '@/components/BarChart.js'
+import Loader from '@/components/Loader.vue'
+
 import _ from 'lodash'
 import log from 'loglevel'
 import { required } from 'vuelidate/lib/validators'
@@ -191,7 +196,8 @@ export default {
     }
   },
   components: {
-    BarChart
+    BarChart,
+    Loader
   },
   created () {
     this.$store.dispatch('getBestBlock').then((d) => {
@@ -253,7 +259,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .chart-wrapper {
-  min-height: 300px;
+  min-height: 400px;
 }
 dt {
   font-weight: 700;
