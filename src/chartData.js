@@ -10,7 +10,7 @@ module.exports = {
   getStakeChartData: (start, end, bestBlock) => {
     let url = helpers.apiUrl + 'block/range/' + start + '/' + end
     return new Promise((resolve, reject) => {
-      let cacheUrl = url + ':' + bestBlock.height
+      let cacheUrl = url + ':v1:' + bestBlock.height
       let responseData = Lockr.get(cacheUrl)
       if (responseData) {
         resolve(responseData)
@@ -44,7 +44,7 @@ module.exports = {
             ticketPoolSizeRange: _.values(poolSizeByWindow),
             ticketPoolSizeRangeLabels: _(blocksByTicketWindow)
               .mapValues((v) => {
-                return _.first(v).height.toLocaleString()
+                return (_.first(v).height / 144).toLocaleString()
               })
               .values()
               .value(),
@@ -56,11 +56,16 @@ module.exports = {
               maintainAspectRatio: false,
               tooltips: {
                 enabled: true,
-                mode: 'single',
                 callbacks: {
-                  title: function (tooltipItems, data) {
-                    log.info('title', 'Block Height: ' + tooltipItems[0].xLabel)
-                    return 'Block Height: ' + tooltipItems[0].xLabel
+                  title: function (tooltipItems, data, i) {
+                    return `Ticket Window: ${tooltipItems[0].xLabel}`
+                  },
+                  afterTitle: function (tooltipItems, data, i) {
+                    let blockHeight = parseInt(tooltipItems[0].xLabel.replace(/,/g, '')) * 144
+                    return `Blocks:
+${blockHeight.toLocaleString()}
+—
+${(blockHeight + 144).toLocaleString()}`
                   },
                   label: function (tooltipItem, data) {
                     if (tooltipItem.datasetIndex === 0) {
@@ -72,6 +77,10 @@ module.exports = {
                 }
               },
               scales: {
+                xAxes: [{
+                  barPercentage: 1,
+                  categoryPercentage: 1
+                }],
                 yAxes: [
                   {
                     position: 'left',

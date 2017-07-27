@@ -33,7 +33,7 @@
 
     <div class="pos-rel chart-wrapper">
       <div v-if="ticketPoolSizeRange && !loadingChart">
-        <line-chart
+        <bar-chart
           :height="300"
           :chart-data="{
             labels: ticketPoolSizeRangeLabels,
@@ -42,6 +42,7 @@
                 label: '# Tickets in Pool',
                 yAxisID: 'y-axis-0',
                 fill: false,
+                type: 'line',
                 backgroundColor: '#2970ff',
                 borderColor: '#2970ff',
                 data: ticketPoolSizeRange
@@ -57,25 +58,52 @@
             ]
           }"
           :options="ticketPoolSizeRangeOptions"
-        ></line-chart>
-        <div class="text-center" style="margin-top: -5px;"><small>Block Height</small></div>
+        ></bar-chart>
+        <div class="text-center" style="margin-top: -5px;"><small>Ticket Window</small></div>
       </div>
       <div v-if="loadingChart" class="chart-loader">Loading chart...</div>
     </div>
 
     <div class="row mb-2" v-if="ticketPoolSizeRange">
-      <form class="form-inline col-sm-12" >
+      <form
+        v-bind:class="{ 'has-danger': rangeError }"
+        class="form-inline col-sm-12"
+        @submit.prevent="update"
+      >
         <span>
           <label class="input-label">Block Height Start</label>
-          <input type="number" v-model="start" @keyup="keymonitor" class="range-input form-control mb-2 mr-sm-1 mb-sm-0" id="inlineFormInput" placeholder="Block height start">
+          <input
+            type="number"
+            name="start"
+            v-model="start"
+            v-on:change="validateRange"
+            v-on:keyup="validateRange"
+            min="0"
+            class="range-input form-control mb-2 mr-sm-1 mb-sm-0"
+            placeholder="Block height start"
+          >
         </span>
         <span class="mr-sm-1">
           <label class="input-label">Block Height End</label>
-          <input type="number" v-model="end" @keyup="keymonitor" class="range-input form-control" id="inlineFormInputGroup" placeholder="Block height end">
+          <input
+            type="number"
+            name="end"
+            min="0"
+            v-model="end"
+            v-on:change="validateRange"
+            v-on:keyup="validateRange"
+            class="range-input form-control"
+            placeholder="Block height end"
+          >
         </span>
         <span style="padding-top: 18px;">
-          <button type="submit" class="btn btn-primary" v-on:click="update('ok', $event)">Update Chart</button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            :disabled="rangeError"
+          >Update Chart</button>
         </span>
+        <span style="margin: 18px 0 0 10px;" class="form-control-feedback">{{rangeError}}</span>
       </form>
     </div>
 
@@ -87,9 +115,12 @@ import axios from 'axios'
 import moment from 'moment'
 import helpers from '../helpers'
 import chartData from '../chartData'
-import LineChart from '@/components/LineChart.js'
+import BarChart from '@/components/BarChart.js'
 import _ from 'lodash'
 import log from 'loglevel'
+import { required } from 'vuelidate/lib/validators'
+
+const MAX_RANGE = 20000
 
 function updateStakeChart (data) {
   data.loadingChart = true
@@ -108,6 +139,26 @@ function updateStakeChart (data) {
     })
 }
 
+const validateRange = (context) => {
+  let delta = context.end - context.start
+  if (delta < 1) {
+    context.rangeError = 'Start must be greater than end'
+    return false
+  }
+  if (delta < 144) {
+    context.rangeError = 'Start must be at least 144 blocks greater than end'
+    return false
+  }
+  if (delta > MAX_RANGE) {
+    context.rangeError = `Start must be within ${MAX_RANGE.toLocaleString()} blocks of end`
+    return false
+  }
+  context.rangeError = null
+  return true
+}
+
+const validateRangeDebounced = _.debounce(validateRange, 30)
+
 export default {
   data () {
     return {
@@ -124,11 +175,23 @@ export default {
       ticketPoolSizeRangeLabels: null,
       ticketPoolSizeRangeOptions: null,
       ticketPrices: null,
-      error: null
+      rangeError: null
+    }
+  },
+  validations: {
+    start: {
+      required
+    },
+    end: {
+      required,
+      lessThanBestBlock: (end, context) => {
+        if (!context.bestBlock.height) { return false }
+        return end <= context.bestBlock.height
+      }
     }
   },
   components: {
-    LineChart
+    BarChart
   },
   created () {
     this.$store.dispatch('getBestBlock').then((d) => {
@@ -153,18 +216,24 @@ export default {
     }
   },
   methods: {
-    keymonitor (event) {
-      if (event.key === 'Enter') {
-        updateStakeChart(this)
-      }
+    validateRange: function () {
+      validateRangeDebounced(this)
     },
-    update () {
-      updateStakeChart(this)
+    update (event) {
+      event.preventDefault()
+      event.stopPropagation()
+      if (this.$v.$invalid) {
+        console.log('$invalid form')
+      } else {
+        if (validateRange(this)) {
+          updateStakeChart(this)
+        }
+      }
     },
     fetchStarterData () {
       var _this = this
       console.log('fetchStarterData', _this.$store)
-      _this.start = _this.$store.state.bestBlock.height - 5000
+      _this.start = _this.$store.state.bestBlock.height - 2880
       _this.end = _this.$store.state.bestBlock.height
       updateStakeChart(_this)
       axios.get(helpers.apiUrl + 'stake/diff')

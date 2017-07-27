@@ -10,23 +10,22 @@
     <div class="pos-rel">
       <div v-if="!blockSizeRange" class="chart-loader">Loading chart...</div>
       <div v-if="blockSizeRange">
-        <line-chart
-          :height="300"
+        <bar-chart
+          :height="400"
           :chart-data="{
             labels: blockSizeRangeLabels,
             datasets:[
               {
                 label: 'Block Size',
                 yAxisID: 'y-axis-0',
-                fill: false,
-                backgroundColor: '#2970ff',
-                borderColor: '#2970ff',
+                backgroundColor: '#69D3F5',
+                borderColor: '#3bcfff',
                 data: blockSizeRange
               }
             ]
           }"
           :options="blockSizeRangeOptions"
-        ></line-chart>
+        ></bar-chart>
         <div class="text-center" style="margin-top: -5px;"><small>Block Height</small></div>
       </div>
     </div>
@@ -37,7 +36,7 @@
 <script>
 
 import helpers from '../helpers'
-import LineChart from '@/components/LineChart.js'
+import BarChart from '@/components/BarChart.js'
 import axios from 'axios'
 import _ from 'lodash'
 import log from 'loglevel'
@@ -54,13 +53,12 @@ function getTransactions (start, end, data) {
       }),
       blockSizeRangeOptions: {
         animation: {
-          duration: 100
+          duration: 2000
         },
         responsive: true,
         maintainAspectRatio: false,
         tooltips: {
           enabled: true,
-          mode: 'single',
           callbacks: {
             title: function (tooltipItems, data) {
               return 'Block Height: ' + tooltipItems[0].xLabel
@@ -71,6 +69,10 @@ function getTransactions (start, end, data) {
           }
         },
         scales: {
+          xAxes: [{
+            barPercentage: 1,
+            categoryPercentage: 1
+          }],
           yAxes: [
             {
               position: 'left',
@@ -79,7 +81,6 @@ function getTransactions (start, end, data) {
                 beginAtZero: false,
                 callback: function (label, index, labels) {
                   return helpers.formatBytes(label)
-                    // return label.toLocaleString()
                 }
               },
               scaleLabel: {
@@ -115,12 +116,12 @@ export default {
     }
   },
   components: {
-    LineChart
+    BarChart
   },
   created () {
     var _this = this
     _this.$store.dispatch('getBestBlock').then((bestBlock) => {
-      _this.start = bestBlock.height - 20
+      _this.start = bestBlock.height - 12
       _this.end = bestBlock.height
       getTransactions(_this.start, _this.end, _this)
     })
