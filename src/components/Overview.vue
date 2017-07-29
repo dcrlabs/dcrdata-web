@@ -2,30 +2,28 @@
   <div v-if="bestBlock" class="container-fluid">
 
     <div class="row">
-      <div class="col-4">
+      <div class="col-3">
         <dl>
-          <dt>Current Ticket Price</dt>
-          <dd>{{ bestBlock.sdiff | currency('',1) }} DCR</dd>
-
-          <dt>Avg Ticket Price</dt>
-          <dd>{{ bestBlock.ticket_pool.valavg | currency('',1) }} DCR</dd>
+          <dt>Block Reward</dt>
+          <dd>{{ totalSubsidyInDCR | currency('',2) }} DCR</dd>
         </dl>
       </div>
-      <div class="col-4">
+      <div class="col-3">
         <dl>
-          <dt>Tickets in Pool</dt>
-          <dd>{{ bestBlock.ticket_pool.size.toLocaleString() }}</dd>
-
-          <dt>Value of Tickets</dt>
-          <dd>{{ Math.round(bestBlock.ticket_pool.value).toLocaleString() }} DCR</dd>
+          <dt>Proof of Work Reward</dt>
+          <dd>{{ workSubsidyInDCR | currency('',2) }} DCR</dd>
         </dl>
       </div>
-      <div class="col-4">
+      <div class="col-3">
         <dl>
-          <dt>Last block mined at:</dt>
-          <dd>
-            {{ bestBlock.time | formatUnixDate('MMMM Do YYYY, h:mm:ss a') }} <small class="no-wrap">{{ lastBlockTimeElapsed }}</small>
-          </dd>
+          <dt>Proof of Stake Reward</dt>
+          <dd>{{ voteSubsidyInDCR | currency('',2) }} DCR</dd>
+        </dl>
+      </div>
+      <div class="col-3">
+        <dl>
+          <dt>Developement Tax</dt>
+          <dd>{{ taxSubsidyInDCR | currency('',2) }} DCR</dd>
         </dl>
       </div>
     </div>
@@ -42,12 +40,32 @@ import LineChart from '@/components/LineChart.js'
 // import _ from 'lodash'
 import log from 'loglevel'
 
+const subsidyParams = {
+  BaseSubsidy: 3119582664, // 21m
+  MulSubsidy: 100,
+  DivSubsidy: 101,
+  SubsidyReductionInterval: 6144,
+  WorkRewardProportion: 6,
+  StakeRewardProportion: 3,
+  BlockTaxProportion: 1
+}
+function calcBlockSubsidy (height) {
+  let iteration = parseInt(height / subsidyParams.SubsidyReductionInterval)
+  let subsidy = subsidyParams.BaseSubsidy
+  for (var i = 0; i < iteration; i++) {
+    subsidy = parseInt(subsidy * subsidyParams.MulSubsidy)
+    subsidy = parseInt(subsidy / subsidyParams.DivSubsidy)
+  }
+  return subsidy
+}
+
 export default {
   data () {
     return {
       loading: false,
       error: null,
-      lastBlockTimeElapsed: null
+      lastBlockTimeElapsed: null,
+      currentSubsidy: null
     }
   },
   components: {
@@ -57,6 +75,7 @@ export default {
     log.info('overview')
     this.$store.dispatch('getBestBlock').then((d) => {
       var _this = this
+      _this.currentSubsidy = calcBlockSubsidy(this.$store.state.bestBlock.height)
       setInterval(function () {
         var time = moment.utc(_this.bestBlock.time * 1000)
         _this.lastBlockTimeElapsed = time.fromNow()
@@ -71,6 +90,18 @@ export default {
   computed: {
     bestBlock () {
       return this.$store.state.bestBlock
+    },
+    totalSubsidyInDCR () {
+      return this.currentSubsidy / 100000000
+    },
+    workSubsidyInDCR () {
+      return this.currentSubsidy / 600000000
+    },
+    voteSubsidyInDCR () {
+      return this.currentSubsidy / 300000000
+    },
+    taxSubsidyInDCR () {
+      return this.currentSubsidy / 1000000000
     }
   },
   methods: {
