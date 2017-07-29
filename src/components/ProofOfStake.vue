@@ -31,40 +31,48 @@
       </div>
     </div>
 
-    <div class="pos-rel chart-wrapper">
-      <div v-if="ticketPoolSizeRange && !loadingChart">
-        <bar-chart
-          :height="400"
-          :chart-data="{
-            labels: ticketPoolSizeRangeLabels,
-            datasets:[
-              {
-                label: '# Tickets in Pool',
-                yAxisID: 'y-axis-0',
-                fill: false,
-                type: 'line',
-                backgroundColor: '#2970ff',
-                borderColor: '#2970ff',
-                data: ticketPoolSizeRange
-              },
-              {
-                label: 'Ticket Price',
-                yAxisID: 'y-axis-1',
-                backgroundColor: '#2ed8a3',
-                borderColor: '#2ed8a3',
-                fill: false,
-                data: ticketPrices
-              }
-            ]
-          }"
-          :options="ticketPoolSizeRangeOptions"
-        ></bar-chart>
-        <div class="text-center" style="margin-top: -5px;"><small>Ticket Window</small></div>
+    <div class="row">
+
+      <div class="col-md-12">
+        <div class="pos-rel chart-wrapper">
+          <div v-if="ticketPoolSizeRange && !loadingChart">
+            <div class="text-center" style="margin-top: -5px;"><small>Ticket Window</small></div>
+            <line-chart
+              :height="400"
+              :chart-data="{
+                labels: ticketPoolSizeRangeLabels,
+                datasets:[
+                  {
+                    label: 'Ticket Price',
+                    yAxisID: 'y-axis-1',
+                    backgroundColor: '#2ed8a3',
+                    borderColor: '#2ed8a3',
+                    fill: false,
+                    bezierCurve : false,
+                    data: ticketPrices
+                  },
+                  {
+                    label: '# Tickets in Pool',
+                    beginAtZero: false,
+                    yAxisID: 'y-axis-0',
+                    fill: true,
+                    backgroundColor: '#2970ff',
+                    borderColor: '#2970ff',
+                    data: ticketPoolSizeRange
+                  }
+                ]
+              }"
+              :options="ticketPoolSizeRangeOptions"
+            ></line-chart>
+
+          </div>
+          <div v-if="loadingChart" class="chart-loader">
+            <loader></loader>
+            Loading data...
+          </div>
+        </div>
       </div>
-      <div v-if="loadingChart" class="chart-loader">
-        <loader></loader>
-        Loading data...
-      </div>
+
     </div>
 
     <div class="row mb-2" v-if="ticketPoolSizeRange">
@@ -118,6 +126,7 @@ import axios from 'axios'
 import moment from 'moment'
 import helpers from '../helpers'
 import chartData from '../chartData'
+import LineChart from '@/components/LineChart.js'
 import BarChart from '@/components/BarChart.js'
 import Loader from '@/components/Loader.vue'
 
@@ -196,6 +205,7 @@ export default {
     }
   },
   components: {
+    LineChart,
     BarChart,
     Loader
   },
