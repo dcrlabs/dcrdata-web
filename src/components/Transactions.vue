@@ -82,7 +82,7 @@ function getTransactions (start, end, data) {
               position: 'left',
               id: 'y-axis-0',
               ticks: {
-                beginAtZero: false,
+                beginAtZero: true,
                 callback: function (label, index, labels) {
                   return helpers.formatBytes(label)
                 }
