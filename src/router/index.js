@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Root from '@/components/Root'
-import Overview from '@/components/Overview'
+import Subsidy from '@/components/Subsidy'
 import ProofOfStake from '@/components/ProofOfStake'
 import Transactions from '@/components/Transactions'
 
@@ -18,8 +18,8 @@ export default new Router({
       children: [
         {
           path: '',
-          name: 'Overview',
-          component: Overview
+          name: 'Subsidy',
+          component: Subsidy
         },
         {
           path: 'proof-of-stake',
