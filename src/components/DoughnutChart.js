@@ -1,6 +1,6 @@
-import { Pie, mixins } from 'vue-chartjs'
+import { Doughnut, mixins } from 'vue-chartjs'
 
-export default Pie.extend({
+export default Doughnut.extend({
   mixins: [mixins.reactiveProp],
   props: ['chartData', 'options'],
   mounted () {

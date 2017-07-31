@@ -62,4 +62,10 @@ export default {
 .pos-rel {
   position: relative;
 }
+.pos-abs {
+  position: absolute;
+}
+.full-width {
+  width: 100%;
+}
 </style>
