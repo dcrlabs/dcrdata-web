@@ -135,7 +135,7 @@ module.exports = {
   getStakeChartData: (start, end, bestBlock) => {
     let url = helpers.apiUrl + 'block/range/' + start + '/' + end
     return new Promise((resolve, reject) => {
-      let cacheUrl = url + ':v5:' + bestBlock.height
+      let cacheUrl = url + ':v6:' + bestBlock.height
       let cachedResponse = Lockr.get(cacheUrl)
       if (cachedResponse) {
         resolve(getChartData(cachedResponse))
