@@ -3,9 +3,9 @@
 
     <div class="row">
       <div class="col-6 col-sm-8 col-mg-9 col-lg-10">
+        <h3>Block Reward</h3>
       </div>
       <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-        <div class="row"><h3>Block Reward</h3></div>
         <div class="row">
           <div class="pos-abs full-width doughnut-wrapper">
             <div class="labels" v-bind:class="{ show: currentSubsidyRange }">
@@ -56,7 +56,8 @@
                     bezierCurve : false,
                     data: subsidyRange,
                   }
-                ]
+                ],
+                lineAtIndex: [bestBlockIndex]
               }"
               :options="subsidyRangeOptions"
             ></line-chart>
@@ -124,34 +125,31 @@ function getCurrentSubsidy (height) {
     ],
     currentSubsidyOptions: {
       legend: {
-        display: true,
-        text: 'Block Reward'
-      },
-      animation: {
-        duration: 100
-      },
-      tooltips: {
-        enabled: true,
-        callbacks: {
-          title: function (tooltipItems, data) {
-            return 'Block Height: ' + tooltipItems[0].xLabel
-          },
-          label: function (tooltipItem, data) {
-            return (Math.round((tooltipItem.yLabel / 100000000) * 100) / 100) + ' DCR'
-          }
-        }
+        display: false
       }
     }
   }
 }
 
-function getSubsidyRange (start, end) {
+const customTooltipCallback = _.debounce((d, context) => {
+  if (!d.body) {
+    context.selectedSubsidy = null
+  } else {
+    context.height = parseInt(d.dataPoints[0].xLabel)
+    context.selectedSubsidy = calcBlockSubsidy(context.height)
+  }
+}, 300, {
+  leading: true,
+  trailing: true
+})
+
+function getSubsidyRange (start, end, context) {
   if (start > end) return {}
   let startInterval = parseInt(start / subsidyParams.SubsidyReductionInterval)
   let endInterval = parseInt(end / subsidyParams.SubsidyReductionInterval)
   let iterations = endInterval - startInterval
   if (iterations > 1000) {
-    console.log('pick a smaller range')
+    log.info('pick a smaller range')
     return {}
   }
   return {
@@ -166,6 +164,9 @@ function getSubsidyRange (start, end) {
       return start + ((n) * subsidyParams.SubsidyReductionInterval)
     }),
     subsidyRangeOptions: {
+      legend: {
+        display: false
+      },
       animation: {
         duration: 2000
       },
@@ -175,11 +176,17 @@ function getSubsidyRange (start, end) {
         enabled: true,
         callbacks: {
           title: function (tooltipItems, data) {
+            let height = parseInt(tooltipItems[0].xLabel)
+            let subsidy = calcBlockSubsidy(height)
+            context.selectedSubsidy = subsidy
             return 'Block Height: ' + tooltipItems[0].xLabel
           },
           label: function (tooltipItem, data) {
             return (Math.round((tooltipItem.yLabel / 100000000) * 100) / 100) + ' DCR'
           }
+        },
+        custom: function (d) {
+          customTooltipCallback(d, context)
         }
       },
       scales: {
@@ -214,10 +221,13 @@ export default {
       currentSubsidyLabels: null,
       currentSubsidyOptions: null,
       start: 0,
-      end: 2000000,
+      end: 1000000,
       subsidyRange: null,
       subsidyRangeLabels: null,
-      subsidyRangeOptions: null
+      subsidyRangeOptions: null,
+      selectedBlock: null,
+      selectedSubsidy: null,
+      bestBlockIndex: null
     }
   },
   components: {
@@ -226,10 +236,12 @@ export default {
     Loader
   },
   created () {
-    log.info('overview')
     this.$store.dispatch('getBestBlock').then((d) => {
-      _.assign(this, getSubsidyRange(this.start, this.end))
+      this.selectedBlock = this.$store.state.bestBlock.height
+      this.selectedSubsidy = this.$store.state.bestBlock.subsidy
+      _.assign(this, getSubsidyRange(this.start, this.end, this))
       _.assign(this, getCurrentSubsidy(this.$store.state.bestBlock.height))
+      this.bestBlockIndex = _.indexOf(this.subsidyRange, this.currentSubsidy)
     })
   },
   watch: {
@@ -242,19 +254,19 @@ export default {
       return this.$store.state.bestBlock
     },
     totalSubsidyInDCR () {
-      return this.currentSubsidy / 100000000
+      return (this.selectedSubsidy || this.currentSubsidy) / 100000000
     },
     workSubsidyInDCR () {
-      return this.currentSubsidy * 0.000000006
+      return (this.selectedSubsidy || this.currentSubsidy) * 0.000000006
     },
     voteSubsidyInDCR () {
-      return this.currentSubsidy * 0.000000003
+      return (this.selectedSubsidy || this.currentSubsidy) * 0.000000003
     },
     voteSubsidyPerTicketInDCR () {
-      return this.currentSubsidy * 0.000000003 * 0.2
+      return (this.selectedSubsidy || this.currentSubsidy) * 0.000000003 * 0.2
     },
     taxSubsidyInDCR () {
-      return this.currentSubsidy * 0.000000001
+      return (this.selectedSubsidy || this.currentSubsidy) * 0.000000001
     }
   },
   methods: {

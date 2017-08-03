@@ -1,6 +1,6 @@
 <template>
   <div>
-    <nav class="navbar navbar-toggleable-md navbar-light bg-faded">
+    <nav class="navbar navbar-toggleable-sm navbar-light bg-faded">
       <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -10,6 +10,10 @@
           src="../assets/logo.svg"
         >
         <span class="logo-text">data</span>
+        <small
+          v-if="bestBlock"
+          class="mobile-best-block hidden-md-up"
+        >best block {{ bestBlock.height.toLocaleString() }}</small>
       </a>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
@@ -60,13 +64,10 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.range-input {
-  width: 100px;
-}
-.input-label {
-  font-size: 12px;
-}
-a {
-  color: #42b983;
+.mobile-best-block {
+  position: relative;
+  top: 4px;
+  font-size: 14px;
+  color: gray;
 }
 </style>
