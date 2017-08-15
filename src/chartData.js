@@ -6,13 +6,13 @@ import moment from 'moment'
 import log from 'loglevel'
 import Lockr from 'lockr'
 
-const rountToThousand = (value) => { return Math.round(value / 5000) * 5000 }
+const rountToThousand = (value) => { return Math.round(value / 1000) * 1000 }
 
 module.exports = {
   getStakeChartData: (start, end, bestBlock) => {
     let url = helpers.apiUrl + 'block/range/' + start + '/' + end
     return new Promise((resolve, reject) => {
-      let cacheUrl = url + ':v4:' + bestBlock.height
+      let cacheUrl = url + ':v5:' + bestBlock.height + new Date()
       let responseData = Lockr.get(cacheUrl)
       if (responseData) {
         resolve(responseData)
@@ -52,7 +52,11 @@ module.exports = {
           let minPoolsize = _.min(ticketPoolSizeRange)
           let maxPoolsize = _.max(ticketPoolSizeRange)
           let poolSizeDelta = maxPoolsize - minPoolsize
-
+          if (poolSizeDelta < 1000) {
+            poolSizeDelta = 1001
+          }
+          let poolSizeYAxisMin = Math.max(rountToThousand(minPoolsize - (poolSizeDelta * 4)), 0)
+          let poolSizeYAxisMax = Math.min(rountToThousand(maxPoolsize + (poolSizeDelta * 2)), 60000)
           let chartData = {
             avgTimeBlockTimeInMinutes: formattedAvgTimeBlockTime,
             ticketPoolSizeRange: ticketPoolSizeRange,
@@ -116,8 +120,8 @@ ${(blockHeight + 144).toLocaleString()}`
                     position: 'left',
                     id: 'y-axis-0',
                     ticks: {
-                      min: Math.max(rountToThousand(minPoolsize - (poolSizeDelta * 4)), 0),
-                      max: Math.min(rountToThousand(maxPoolsize + (poolSizeDelta * 2)), 60000),
+                      min: poolSizeYAxisMin,
+                      max: poolSizeYAxisMax,
                       beginAtZero: false,
                       callback: function (label, index, labels) {
                         return label.toLocaleString()
