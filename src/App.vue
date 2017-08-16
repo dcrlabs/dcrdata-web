@@ -68,4 +68,7 @@ export default {
 .full-width {
   width: 100%;
 }
+.flex {
+  display: flex;
+}
 </style>

@@ -6,7 +6,6 @@
         <dl>
           <dt>Current Ticket Price</dt>
           <dd>{{ bestBlock.sdiff | currency('',1) }} DCR</dd>
-
           <dt>Next Ticket Price Estimate:</dt>
           <dd v-if="stakeDiff">{{ stakeDiff.estimates.min | currency('',1) }} &mdash; {{ stakeDiff.estimates.max | currency('',1) }} DCR</dd>
         </dl>
