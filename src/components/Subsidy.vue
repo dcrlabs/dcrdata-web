@@ -8,7 +8,7 @@
           <div class="row">
             <div class="col-6 bar-label">
               <small>{{ percentMined | currency('',1) }}% mined</small><br>
-              {{ currentSupply | currency('',0) }} DCR
+              {{ supply | currency('',0) }} DCR
             </div>
             <div class="col-6 text-right bar-label">
               <small>of total</small><br>
@@ -22,9 +22,10 @@
             ></div>
           </div>
           <div>
-            <div v-bind:style="{ width: percentMined + '%' }">
-              <div class="vertical-connector"></div>
-            </div>
+            <div
+              v-bind:style="{ width: percentMined / 2 + '%' }"
+              class="vertical-connector"
+            ></div>
           </div>
           <div class="hortizontal-connector"></div>
           <div class="subsidy-breakdown flex">
@@ -64,15 +65,15 @@
         </div>
         <div class="legend-item">
           <span class="swatch dev-subsidy-color"></span>
-          Dev Subsidy
+          Development
         </div>
         <div class="legend-item">
           <span class="swatch pos-subsidy-color"></span>
-          Vote
+          Proof of Stake
         </div>
         <div class="legend-item">
           <span class="swatch pow-subsidy-color"></span>
-          Work
+          Proof of Work
         </div>
       </div>
     </div>
@@ -420,6 +421,9 @@ export default {
     taxSubsidyInDCR () {
       return (this.selectedSubsidy || this.currentSubsidy) * 0.000000001
     },
+    supply () {
+      return this.selectedSupply || this.currentSupply
+    },
     airDropPercent () {
       return (840000 / (this.selectedSupply || this.currentSupply) * 100)
     },
@@ -532,10 +536,9 @@ a {
   margin-bottom: 4px;
 }
 .vertical-connector {
-  width: 2px;
-  background: #cacbcd;
+  transition: 1s width;
+  border-right: 2px solid #cacbcd;
   height: 20px;
-  margin: 0 auto;
 }
 .hortizontal-connector {
   border: 2px solid #cacbcd;
