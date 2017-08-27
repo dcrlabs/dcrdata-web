@@ -46,14 +46,13 @@ import _ from 'lodash'
 import log from 'loglevel'
 
 function getTransactions (start, end, data) {
-  let url = helpers.apiUrl + 'block/range/' + start + '/' + end
+  let url = helpers.apiUrl + 'block/range/' + start + '/' + end + '/size'
   axios.get(url).then(function (response) {
     var compactedResponseData = _.compact(response.data)
-    log.info('compactedResponseData', compactedResponseData)
     let chartData = {
-      blockSizeRange: _.map(compactedResponseData, 'size'),
-      blockSizeRangeLabels: _.map(compactedResponseData, (v) => {
-        return v.height.toLocaleString()
+      blockSizeRange: compactedResponseData,
+      blockSizeRangeLabels: _.map(compactedResponseData, (v, i) => {
+        return (start + i).toLocaleString()
       }),
       blockSizeRangeOptions: {
         animation: {
@@ -128,7 +127,7 @@ export default {
   created () {
     var _this = this
     _this.$store.dispatch('getBestBlock').then((bestBlock) => {
-      _this.start = bestBlock.height - 12
+      _this.start = bestBlock.height - 288
       _this.end = bestBlock.height
       getTransactions(_this.start, _this.end, _this)
     })
