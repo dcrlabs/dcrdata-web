@@ -35,7 +35,7 @@
       <div class="col-md-12">
         <div class="pos-rel chart-wrapper">
           <div v-if="ticketPoolSizeRange && !loadingChart">
-            <div class="text-center" style="margin-top: -5px;"><small>Ticket Window</small></div>
+            <div class="text-center" style="margin-top: -5px;"><small>Staking Difficulty and Ticket Pool Size / Ticket Window</small></div>
             <line-chart
               :height="400"
               :chart-data="{
@@ -133,7 +133,7 @@ import _ from 'lodash'
 import log from 'loglevel'
 import { required } from 'vuelidate/lib/validators'
 
-const MAX_RANGE = 20000
+const MAX_RANGE = 200000
 
 function updateStakeChart (data) {
   data.loadingChart = true
