@@ -17,7 +17,7 @@ const linePlugin = {
     // write label
     context.fillStyle = 'rgb(49, 54, 149)'
     context.textAlign = 'center'
-    context.fillText('Last Reduction', lineLeftOffset + 48, scale.top + 40)
+    context.fillText('Latest Reward Reduction', lineLeftOffset + 75, scale.top + 40)
   }, 16),
   beforeDatasetsDraw: function (chart, easing) {
     let pointIndex = chart.config.data.lineAtIndex[0]
