@@ -50,7 +50,7 @@
     </div>
     <div class="row">
       <div class="col-12">
-        <h5 class="text-center">Block Reward and Total Supply over Time</h5>
+        <h5 class="text-center">Reward and Supply per Reduction Interval</h5>
       </div>
     </div>
     <div class="row mb-2">
@@ -96,9 +96,14 @@
                     type: 'doughnut',
                     label: 'Block Reward',
                     backgroundColor: [
-                      '#d431e4',
-                      '#81ece6',
-                      '#e1bd30'
+                      '#91bfdb',
+                      '#e0f3f8',
+                      '#fee090'
+                    ],
+                    borderColor: [
+                      '#91bfdb',
+                      '#e0f3f8',
+                      '#fee090'
                     ],
                     data: currentSubsidyRange
                   }
@@ -117,7 +122,7 @@
         <div class="pos-rel chart-wrapper">
           <div v-if="subsidyRange">
             <line-chart
-              :height="500"
+              :height="420"
               :chart-data="{
                 labels: subsidyRangeLabels,
                 datasets:[
@@ -127,17 +132,52 @@
                     backgroundColor: '#2ed8a3',
                     borderColor: '#2ed8a3',
                     fill: false,
-                    bezierCurve : false,
                     data: subsidyRange,
+                   },
+                  {
+                    label: 'Airdrop',
+                    yAxisID: 'y-axis-1',
+                    backgroundColor: '#d73027',
+                    borderColor: '#d73027',
+                    fill: true,
+                    bezierCurve : false,
+                    data: airDropRange,
                   },
                   {
-                    label: 'DCR Created',
+                    label: 'Development Premine',
                     yAxisID: 'y-axis-1',
-                    backgroundColor: '#4480fd',
-                    borderColor: '#a0bfff',
+                    backgroundColor: '#fc8d59',
+                    borderColor: '#fc8d59',
+                    fill: true,
+                    bezierCurve : false,
+                    data: premineRange,
+                  },
+                  {
+                    label: 'Development Tax',
+                    yAxisID: 'y-axis-1',
+                    backgroundColor: '#fee090',
+                    borderColor: '#fee090',
+                    fill: true,
+                    bezierCurve : false,
+                    data: developementTaxRange,
+                  },
+                  {
+                    label: 'Proof of Stake',
+                    yAxisID: 'y-axis-1',
+                    backgroundColor: '#81ece6',
+                    borderColor: '#81ece6',
+                    fill: true,
+                    bezierCurve : false,
+                    data: proofOfStakeRange,
+                  },
+                  {
+                    label: 'Proof of Work',
+                    yAxisID: 'y-axis-1',
+                    backgroundColor: '#91bfdb',
+                    borderColor: '#91bfdb',
                     fill: true,
                     bezierCurve: false,
-                    data: dcrCreatedRange,
+                    data: proofOfWorkRange,
                   }
                 ],
                 lineAtIndex: [bestBlockIndex]
@@ -236,6 +276,17 @@ const customTooltipCallback = _.debounce((d, context) => {
   trailing: true
 })
 
+const buildRange = (proportion, subsidyRange) => {
+  let range = [168000000000000]
+  _.each(subsidyRange, (subsidy, i) => {
+    let subsidyCreatedInInterval = subsidy * subsidyParams.SubsidyReductionInterval * (proportion / 10)
+    if (i > 0) {
+      range.push(range[i - 1] + subsidyCreatedInInterval)
+    }
+  })
+  return range
+}
+
 function getSubsidyRange (start, end, context) {
   if (start > end) return {}
   let startInterval = parseInt(start / subsidyParams.SubsidyReductionInterval)
@@ -252,20 +303,23 @@ function getSubsidyRange (start, end, context) {
       return calcBlockSubsidy(start + (n * subsidyParams.SubsidyReductionInterval))
     }
   })
-
-  let dcrCreatedRange = [168000000000000]
-  _.each(subsidyRange, (subsidy, i) => {
-    let subsidyCreatedInInterval = subsidy * subsidyParams.SubsidyReductionInterval
-    if (i > 0) {
-      dcrCreatedRange.push(dcrCreatedRange[i - 1] + subsidyCreatedInInterval)
-    }
-  })
+  let dcrCreatedRange = buildRange(10, subsidyRange)
+  let airDropRange = _.times(dcrCreatedRange.length, (d) => { return 84000000000000 })
+  let premineRange = _.times(dcrCreatedRange.length, (d) => { return 168000000000000 })
+  let developementTaxRange = buildRange(1, subsidyRange)
+  let proofOfStakeRange = buildRange(4, subsidyRange)
+  let proofOfWorkRange = buildRange(9, subsidyRange)
   return {
     subsidyRange: subsidyRange,
     subsidyRangeLabels: _.times(iterations, (n) => {
       return start + (n * subsidyParams.SubsidyReductionInterval)
     }),
     dcrCreatedRange: dcrCreatedRange,
+    proofOfStakeRange: proofOfStakeRange,
+    proofOfWorkRange: proofOfWorkRange,
+    developementTaxRange: developementTaxRange,
+    airDropRange: airDropRange,
+    premineRange: premineRange,
     subsidyRangeOptions: {
       legend: {
         display: false
@@ -287,13 +341,22 @@ function getSubsidyRange (start, end, context) {
               context.currentSubsidy,
               context
             )
-            return 'Block Height: ' + height
+            return 'Block Height: ' + height.toLocaleString()
           },
           label: function (tooltipItem, data) {
-            if (tooltipItem.datasetIndex === 0) {
-              return 'Block  Reward: ' + (Math.round((tooltipItem.yLabel / 100000000) * 100) / 100).toLocaleString() + ' DCR'
-            } else {
-              return 'Total Mined: ' + (Math.round((tooltipItem.yLabel / 100000000) * 100) / 100) + ' DCR'
+            console.log('tooltipItem.yLabel ', tooltipItem, data, dcrCreatedRange)
+            switch (tooltipItem.datasetIndex) {
+              case 0:
+                return 'Block  Reward: ' + (Math.round((tooltipItem.yLabel / 100000000) * 100) / 100).toLocaleString() + ' DCR'
+              case 1:
+              case 2:
+                return data.datasets[tooltipItem.datasetIndex].label + ': ' + (840000).toLocaleString() + ' DCR'
+              case 3:
+                return data.datasets[tooltipItem.datasetIndex].label + ' Mined: ' + Math.round(dcrCreatedRange[tooltipItem.index] * 0.1 / 100000000).toLocaleString() + ' DCR'
+              case 4:
+                return data.datasets[tooltipItem.datasetIndex].label + ' Mined: ' + Math.round(dcrCreatedRange[tooltipItem.index] * 0.3 / 100000000).toLocaleString() + ' DCR'
+              case 5:
+                return data.datasets[tooltipItem.datasetIndex].label + ' Mined: ' + Math.round(dcrCreatedRange[tooltipItem.index] * 0.6 / 100000000).toLocaleString() + ' DCR'
             }
           },
           footer: function (tooltipItem, data) {
@@ -311,7 +374,7 @@ function getSubsidyRange (start, end, context) {
             id: 'y-axis-0',
             ticks: {
               beginAtZero: false,
-              callback: function (label, index, labels) {
+              callback: (label, index, labels) => {
                 return (label / 100000000).toLocaleString()
               }
             },
@@ -330,7 +393,7 @@ function getSubsidyRange (start, end, context) {
               }
             },
             scaleLabel: {
-              labelString: 'Total DCR created',
+              labelString: 'DCR Created',
               display: true
             }
           }
@@ -382,7 +445,7 @@ export default {
       this.selectedSubsidy = this.$store.state.bestBlock.subsidy
       this.currentBlockDate = estimatedDate(this.$store.state.bestBlock.height)
       this.start = Math.max(0, this.$store.state.bestBlock.height - (50 * subsidyParams.SubsidyReductionInterval))
-      this.end = this.$store.state.bestBlock.height + (80 * subsidyParams.SubsidyReductionInterval)
+      this.end = this.$store.state.bestBlock.height + (48 * subsidyParams.SubsidyReductionInterval)
       _.assign(this, getSubsidyRange(this.start, this.end, this))
       _.assign(this, getCurrentSubsidy(this.$store.state.bestBlock.height))
       this.bestBlockIndex = _.indexOf(this.subsidyRange, this.currentSubsidy)
@@ -469,9 +532,9 @@ dt {
 }
 .doughnut-wrapper {
   z-index: 1;
-  /*padding: 0 10px 0 0;*/
-  top: 142px;
-  right: 123px;
+  top: 80px;
+  right: 120px;
+  opacity: 0.88;
 }
 .doughnut-wrapper .labels {
   top: 0;
@@ -486,16 +549,17 @@ dt {
 }
 .doughnut-wrapper .label {
   position: absolute;
-  font-weight: 600;
-  color: #fff;
+  font-weight: 500;
+  color: rgba(0,0,0,.8);
 }
 .doughnut-wrapper .total {
   top: 40%;
   left: 0%;
   font-size: 33px;
+  font-weight: 600;
   width: 100%;
   text-align: center;
-  color: #fff;
+  color: rgba(0,0,0,.8);
   line-height: 30px;
 }
 .doughnut-wrapper .total .dcr {
@@ -510,7 +574,7 @@ dt {
   left: 10%;
 }
 .doughnut-wrapper .developement {
-  top: 13%;
+  top: 11%;
   left: 33%;
 }
 a {
@@ -526,7 +590,7 @@ a {
 }
 .filled-bar {
   position: absolute;
-  background: #4480fd;
+  background: #4575b4;
   height: 16px;
   border-radius: 10px;
   transition: 1s width;
@@ -559,23 +623,26 @@ a {
   color: black;
   vertical-align: top;
 }
-.airdrop-color {
-  background: #57ed85;
-}
 .airdrop {
   border-radius: 10px 0 0 10px;
 }
+.airdrop-color {
+  background: #d73027;
+}
 .dev-premine-color {
-  background: #d46769;
+  background: #fc8d59;
 }
 .dev-subsidy-color {
-  background: #e1bd30;
+  background: #fee090;
 }
 .pos-subsidy-color {
-  background: #81ece6;
+  background: #e0f3f8;
 }
 .pow-subsidy-color {
-  background: #d431e4;
+  background: #91bfdb;
+}
+.total-subsidy-color {
+  background: #4575b4;
 }
 .pow-subsidy {
   border-radius: 0 10px 10px 0;

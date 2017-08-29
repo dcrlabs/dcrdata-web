@@ -10,14 +10,14 @@ const linePlugin = {
     let context = chart.chart.ctx
     // render vertical line
     context.beginPath()
-    context.strokeStyle = '#ff0000'
+    context.strokeStyle = 'rgb(49, 54, 149)'
     context.moveTo(lineLeftOffset, scale.top)
     context.lineTo(lineLeftOffset, scale.bottom)
     context.stroke()
     // write label
-    context.fillStyle = '#ff0000'
+    context.fillStyle = 'rgb(49, 54, 149)'
     context.textAlign = 'center'
-    context.fillText('We are here', lineLeftOffset + 36, scale.top + 20)
+    context.fillText('Last Reduction', lineLeftOffset + 48, scale.top + 40)
   }, 16),
   beforeDatasetsDraw: function (chart, easing) {
     let pointIndex = chart.config.data.lineAtIndex[0]
