@@ -1,6 +1,8 @@
 # stats-decred
 
-> This is a Vue.js based front end to [dcrdata](https://github.com/dcrdata/dcrdata).
+This is a Vue.js based front end to [dcrdata](https://github.com/dcrdata/dcrdata).
+
+A build of latest master is deployed at https://dcr-data.netlify.com/#/
 
 ## Build Setup
 
