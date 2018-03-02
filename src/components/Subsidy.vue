@@ -97,12 +97,7 @@
                     label: 'Block Reward',
                     backgroundColor: [
                       '#91bfdb',
-                      '#e0f3f8',
-                      '#fee090'
-                    ],
-                    borderColor: [
-                      '#91bfdb',
-                      '#e0f3f8',
+                      '#81ece6',
                       '#fee090'
                     ],
                     data: currentSubsidyRange
