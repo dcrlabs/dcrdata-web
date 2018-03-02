@@ -1,7 +1,7 @@
 import moment from 'moment'
 
 module.exports = {
-  apiUrl: (process.env.NODE_ENV === 'development' ? 'http://127.0.0.1:7777/api/' : 'https://dcrdata.org/api/'),
+  apiUrl: (process.env.NODE_ENV === 'development' ? 'http://127.0.0.1:7777/api/' : 'https://explorer.dcrdata.org/api/'),
   formatUnixDate: (unixTimestamp, formatPattern) => {
     return moment.unix(unixTimestamp).format(formatPattern)
   },
