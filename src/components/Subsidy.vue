@@ -3,7 +3,7 @@
 
     <div class="row">
       <div class="col-12 mb-2">
-        <h5 class="text-center">Decred Supply Distribution</h5>
+        <h5 class="text-center">Estimated Decred Supply Distribution</h5>
         <div class="percent-mined">
           <div class="row">
             <div class="col-6 bar-label">
@@ -636,7 +636,7 @@ a {
   background: #fee090;
 }
 .pos-subsidy-color {
-  background: #e0f3f8;
+  background: #81ece6;
 }
 .pow-subsidy-color {
   background: #91bfdb;
