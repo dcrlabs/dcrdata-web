@@ -133,7 +133,7 @@ import _ from 'lodash'
 import log from 'loglevel'
 import { required } from 'vuelidate/lib/validators'
 
-const MAX_RANGE = 200000
+const MAX_RANGE = 400000
 
 function updateStakeChart (data) {
   data.loadingChart = true
